@@ -14,7 +14,7 @@
 #include <dbi>
 
 #define STRING_MAX 256
-#define PLUGIN_VERSION "0.0.2"
+#define PLUGIN_VERSION "0.0.3"
 
 new String:_err[STRING_MAX];
 new Handle:g_njKanshaEnable;
@@ -51,6 +51,7 @@ public OnPluginStart()
 	}
 	else
 	{
+		SQL_FastQuery(db, "SET NAMES \"UTF8\""); //fuck hack mysql
 		CountUpAllStart();
 	}
 }
@@ -222,7 +223,8 @@ public UpdateSteamid(client)
 				if (!SQL_Execute(hInsertQuery))
 				{
 					SQL_GetError(hInsertQuery, _err, STRING_MAX);
-					PrintToServer("[nj][kansha] can't execute prepare statent[code=26][%s] if duplicate entry ignore this", _err);
+					//lazy fix commentout
+					//PrintToServer("[nj][kansha] can't execute prepare statent[code=26][%s] if duplicate entry ignore this", _err);
 				}
 			}
 		}
