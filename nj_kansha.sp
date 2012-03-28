@@ -14,7 +14,7 @@
 #include <dbi>
 
 #define STRING_MAX 256
-#define PLUGIN_VERSION "0.0.1"
+#define PLUGIN_VERSION "0.0.2"
 
 new String:_err[STRING_MAX];
 new Handle:g_njKanshaEnable;
@@ -37,13 +37,13 @@ public OnPluginStart()
 {
 	g_njKanshaEnable = CreateConVar("nj_kansha", "1", "kansha plugin Enable/Disable (0 = disabled | 1 = enabled)", 0, true, 0.0, true, 1.0);
 	g_njKanshaTag    = CreateConVar("nj_kansha_tag", "default", "kansha plugin tag cvar");
-	
+
 	CreateConVar("nj_kansha_version", PLUGIN_VERSION, "Kansha no Jump Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
-	
+
 	RegConsoleCmd("kansha", ShowStatusInBrowser);
-	
+
 	maxclients = GetMaxClients();
-	
+
 	db = SQL_DefConnect(_err, sizeof(_err));
 	if (db == INVALID_HANDLE)
 	{
@@ -141,7 +141,7 @@ public GetSteamidId(client)
 	}
 	if (hSelectQuery != INVALID_HANDLE)
 		CloseHandle(hSelectQuery);
-	
+
 	return steamid_id;
 }
 
@@ -150,7 +150,7 @@ public GetMapId()
 	new String:currentMap[STRING_MAX];
 	GetCurrentMap(currentMap, STRING_MAX);
 	new Handle:hSelectQuery = INVALID_HANDLE;
-	
+
 	hSelectQuery = SQL_PrepareQuery(db, "select id from nj_maps where mapname = ? limit 1", _err, sizeof(_err));
 	if (hSelectQuery == INVALID_HANDLE)
 	{
@@ -189,7 +189,7 @@ public UpdateSteamid(client)
 		GetClientAuthString(client, steamid, STRING_MAX);
 		if (steamid_id == 0) {
 			PrintToServer("[nj][kansha] UpdateSteamid nickname[%s]steamid[%s]steamcomid[%s]", nickname, steamid, steamcomid);
-			
+
 			hInsertQuery = SQL_PrepareQuery(db, "insert into nj_steamids(steamid, steamcomid, created_at) values(?, ?, now())", _err, sizeof(_err));
 			if (hInsertQuery == INVALID_HANDLE)
 			{
@@ -207,7 +207,7 @@ public UpdateSteamid(client)
 			}
 			steamid_id = GetSteamidId(client);
 		}
-		
+
 		if (steamid_id)
 		{
 			hInsertQuery = SQL_PrepareQuery(db, "insert into nj_steam_nicknames(nj_steamid_id, nickname, created_at) values(?, ?, now())", _err, sizeof(_err));
@@ -226,7 +226,7 @@ public UpdateSteamid(client)
 				}
 			}
 		}
-		
+
 		if (hInsertQuery != INVALID_HANDLE)
 			CloseHandle(hInsertQuery);
 		if (hSelectQuery != INVALID_HANDLE)
@@ -285,7 +285,7 @@ public UpdateStats(client)
 		);
 		*/
 		new steamid_id = GetSteamidId(client);
-		
+
 		if (steamid_id)
 		{
 			hInsertQuery = SQL_PrepareQuery(
