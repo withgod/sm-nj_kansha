@@ -94,9 +94,9 @@ public ShowPluginMsg(client)
 	{
 		decl String:steamcomid[STRING_MAX];
 		Steam_GetCSteamIDForClient(client, steamcomid, STRING_MAX);
-		//PrintToChat(client, "[nj]kansha no plugin http://fps.withgod.jp/kansha/");
-		//PrintToChat(client, "[nj]your stats http://fps.withgod.jp/kansha/user/%i", steamcomid);
-		//PrintToChat(client, "[nj]your stats show in steambrowser !kansha");
+		PrintToChat(client, "[nj]kansha no plugin http://fps.withgod.jp/kansha/");
+		PrintToChat(client, "[nj]your stats http://fps.withgod.jp/kansha/user/%i", steamcomid);
+		PrintToChat(client, "[nj]your stats show in steambrowser !kansha");
 	}
 }
 
@@ -141,7 +141,7 @@ public GetSteamidId(client)
 	}
 	if (hSelectQuery != INVALID_HANDLE)
 		CloseHandle(hSelectQuery);
-
+	
 	return steamid_id;
 }
 
@@ -150,7 +150,7 @@ public GetMapId()
 	new String:currentMap[STRING_MAX];
 	GetCurrentMap(currentMap, STRING_MAX);
 	new Handle:hSelectQuery = INVALID_HANDLE;
-
+	
 	hSelectQuery = SQL_PrepareQuery(db, "select id from nj_maps where mapname = ? limit 1", _err, sizeof(_err));
 	if (hSelectQuery == INVALID_HANDLE)
 	{
@@ -178,34 +178,36 @@ public GetMapId()
 
 public UpdateSteamid(client)
 {
-	if (GetConVarBool(g_njKanshaEnable) && db != INVALID_HANDLE && GetSteamidId(client) == 0)
+	if (GetConVarBool(g_njKanshaEnable) && db != INVALID_HANDLE)
 	{
+		new steamid_id = GetSteamidId(client);
 		new Handle:hInsertQuery = INVALID_HANDLE;
 		new Handle:hSelectQuery = INVALID_HANDLE;
 		decl String:steamcomid[STRING_MAX], String:nickname[STRING_MAX], String:steamid[STRING_MAX];
 		Steam_GetCSteamIDForClient(client, steamcomid, STRING_MAX);
 		GetClientName(client, nickname, STRING_MAX);
 		GetClientAuthString(client, steamid, STRING_MAX);
-		PrintToServer("[nj][kansha] UpdateSteamid nickname[%s]steamid[%s]steamcomid[%s]", nickname, steamid, steamcomid);
-
-		hInsertQuery = SQL_PrepareQuery(db, "insert into nj_steamids(steamid, steamcomid, created_at) values(?, ?, now())", _err, sizeof(_err));
-		if (hInsertQuery == INVALID_HANDLE)
-		{
-			PrintToServer("[nj][kansha] can't create prepare statent[code=21][%s]", _err);
-		}
-		else
-		{
-			SQL_BindParamString(hInsertQuery, 0, steamid, false);
-			SQL_BindParamString(hInsertQuery, 1, steamcomid, false);
-			if (!SQL_Execute(hInsertQuery))
+		if (steamid_id == 0) {
+			PrintToServer("[nj][kansha] UpdateSteamid nickname[%s]steamid[%s]steamcomid[%s]", nickname, steamid, steamcomid);
+			
+			hInsertQuery = SQL_PrepareQuery(db, "insert into nj_steamids(steamid, steamcomid, created_at) values(?, ?, now())", _err, sizeof(_err));
+			if (hInsertQuery == INVALID_HANDLE)
 			{
-				SQL_GetError(hInsertQuery, _err, STRING_MAX);
-				PrintToServer("[nj][kansha] can't execute prepare statent[code=22][%s] if duplicate entry ignore this", _err);
+				PrintToServer("[nj][kansha] can't create prepare statent[code=21][%s]", _err);
 			}
+			else
+			{
+				SQL_BindParamString(hInsertQuery, 0, steamid, false);
+				SQL_BindParamString(hInsertQuery, 1, steamcomid, false);
+				if (!SQL_Execute(hInsertQuery))
+				{
+					SQL_GetError(hInsertQuery, _err, STRING_MAX);
+					PrintToServer("[nj][kansha] can't execute prepare statent[code=22][%s] if duplicate entry ignore this", _err);
+				}
+			}
+			steamid_id = GetSteamidId(client);
 		}
-
-		new steamid_id = GetSteamidId(client);
-
+		
 		if (steamid_id)
 		{
 			hInsertQuery = SQL_PrepareQuery(db, "insert into nj_steam_nicknames(nj_steamid_id, nickname, created_at) values(?, ?, now())", _err, sizeof(_err));
@@ -224,7 +226,7 @@ public UpdateSteamid(client)
 				}
 			}
 		}
-
+		
 		if (hInsertQuery != INVALID_HANDLE)
 			CloseHandle(hInsertQuery);
 		if (hSelectQuery != INVALID_HANDLE)
@@ -278,18 +280,18 @@ public UpdateStats(client)
 		decl String:currentMap[STRING_MAX];
 		GetCurrentMap(currentMap, STRING_MAX);
 		PrintToServer(
-			"client[%i]nickname[%s]class[%i]steamid[%s]steamcomid[%s]jumpcount[%i]mapname[%s]mapid[%i]",
-			client, nickname, theClass, steamid, steamcomid, jumpCounter[client], currentMap, g_currentMapID
+		"client[%i]nickname[%s]class[%i]steamid[%s]steamcomid[%s]jumpcount[%i]mapname[%s]mapid[%i]",
+		client, nickname, theClass, steamid, steamcomid, jumpCounter[client], currentMap, g_currentMapID
 		);
 		*/
 		new steamid_id = GetSteamidId(client);
-
+		
 		if (steamid_id)
 		{
 			hInsertQuery = SQL_PrepareQuery(
-				db,
-				"insert into nj_kansha_results(jump_count, nj_class_id, nj_steamid_id, nj_map_id, tags, created_at) values(?, ?, ?, ?, ?, now())",
-				_err, sizeof(_err)
+			db,
+			"insert into nj_kansha_results(jump_count, nj_class_id, nj_steamid_id, nj_map_id, tags, created_at) values(?, ?, ?, ?, ?, now())",
+			_err, sizeof(_err)
 			);
 			if (hInsertQuery == INVALID_HANDLE)
 			{
@@ -317,7 +319,7 @@ public UpdateStats(client)
 					SQL_GetError(hInsertQuery, _err, STRING_MAX);
 					PrintToServer("[nj][kansha] can't execute prepare statent[code=02][%s]", _err);
 					PrintToServer("[nj][kansha]client[%i]class[%i]steamid_id[%s]jumpcount[%i]mapid[%i]",
-									client, theClass, steamid_id, jumpCounter[client], g_currentMapID);
+					client, theClass, steamid_id, jumpCounter[client], g_currentMapID);
 				}
 			}
 		}
@@ -365,10 +367,10 @@ public CountUpAllEnd()
 }
 
 /*
-	damagetype
-	32      = hit ground
-	2359360 = rocket launcher(normal, direct hit, liberty, rocket jumper)
-	2097216 = equalizer(taunt suicide)
+damagetype
+32      = hit ground
+2359360 = rocket launcher(normal, direct hit, liberty, rocket jumper)
+2097216 = equalizer(taunt suicide)
 */
 public Action:OnTakeDamage(client, &attacker, &inflictor, &Float:damage, &damagetype)
 {
@@ -396,15 +398,15 @@ public Action:OnTakeDamage(client, &attacker, &inflictor, &Float:damage, &damage
 /*
 debug function.
 public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon) {
-	//PrintToServer("%i, %i", TFClass_DemoMan, TFClass_Soldier);
-	if(buttons & IN_ATTACK)
-	{
-		PrintToChatAll("client[%i] is attacking status[%i]", client, buttons);
-	}
-	if(buttons & IN_DUCK)
-	{
-		PrintToChatAll("client[%i] is ducking status[%i]", client, buttons);
-	}
-	return Plugin_Continue;
+//PrintToServer("%i, %i", TFClass_DemoMan, TFClass_Soldier);
+if(buttons & IN_ATTACK)
+{
+PrintToChatAll("client[%i] is attacking status[%i]", client, buttons);
+}
+if(buttons & IN_DUCK)
+{
+PrintToChatAll("client[%i] is ducking status[%i]", client, buttons);
+}
+return Plugin_Continue;
 }
 */
