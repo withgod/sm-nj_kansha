@@ -14,7 +14,7 @@
 #include <dbi>
 
 #define STRING_MAX 256
-#define PLUGIN_VERSION "0.0.3"
+#define PLUGIN_VERSION "0.0.4"
 
 new String:_err[STRING_MAX];
 new Handle:g_njKanshaEnable;
@@ -269,7 +269,7 @@ public UpdateMaps()
 
 public UpdateStats(client)
 {
-	if (GetConVarBool(g_njKanshaEnable) && db != INVALID_HANDLE)
+	if (GetConVarBool(g_njKanshaEnable) && db != INVALID_HANDLE && jumpCounter[client] > 0)
 	{
 		new TFClassType:theClass = TF2_GetPlayerClass(client);
 		new Handle:hInsertQuery = INVALID_HANDLE;
