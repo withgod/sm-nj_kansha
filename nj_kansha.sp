@@ -356,6 +356,7 @@ public CountUpEnd(client)
 	{
 		if (IsClientInGame(client)) {
 			UpdateStats(client);
+			SDKUnhook(client, SDKHook_OnTakeDamage, OnTakeDamage);
 		}
 	}
 }
