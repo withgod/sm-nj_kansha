@@ -14,7 +14,9 @@
 #include <dbi>
 
 #define STRING_MAX 256
+#define SAVE_THRESHOLD 10
 #define PLUGIN_VERSION "0.0.4"
+#define URL_PREFIX "http://fps.withgod.jp/kansha/"
 
 new String:_err[STRING_MAX];
 new Handle:g_njKanshaEnable;
@@ -95,8 +97,8 @@ public ShowPluginMsg(client)
 	{
 		decl String:steamcomid[STRING_MAX];
 		Steam_GetCSteamIDForClient(client, steamcomid, STRING_MAX);
-		PrintToChat(client, "[nj]kansha no plugin http://fps.withgod.jp/kansha/");
-		PrintToChat(client, "[nj]your stats http://fps.withgod.jp/kansha/user/%s", steamcomid);
+		PrintToChat(client, "[nj]kansha no plugin %s", URL_PREFIX);
+		PrintToChat(client, "[nj]your stats %suser/%s", URL_PREFIX, steamcomid);
 		PrintToChat(client, "[nj]your stats show in steambrowser !kansha");
 	}
 }
@@ -105,7 +107,7 @@ public Action:ShowStatusInBrowser(client, args)
 {
 	decl String:steamcomid[STRING_MAX], String:url[STRING_MAX];
 	Steam_GetCSteamIDForClient(client, steamcomid, STRING_MAX);
-	Format(url, STRING_MAX, "http://fps.withgod.jp/kansha/user/%s", steamcomid);
+	Format(url, STRING_MAX, "%suser/%s", URL_PREFIX, steamcomid);
 	//PrintToServer("[nj]open in [%s]", url);
 	ShowMOTDPanel(client, "Kansha no Plugin Status", url, MOTDPANEL_TYPE_URL);
 }
@@ -269,7 +271,7 @@ public UpdateMaps()
 
 public UpdateStats(client)
 {
-	if (GetConVarBool(g_njKanshaEnable) && db != INVALID_HANDLE && jumpCounter[client] > 0)
+	if (GetConVarBool(g_njKanshaEnable) && db != INVALID_HANDLE && jumpCounter[client] > SAVE_THRESHOLD)
 	{
 		new TFClassType:theClass = TF2_GetPlayerClass(client);
 		new Handle:hInsertQuery = INVALID_HANDLE;
