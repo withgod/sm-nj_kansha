@@ -15,7 +15,7 @@
 
 #define STRING_MAX 256
 #define SAVE_THRESHOLD 10
-#define PLUGIN_VERSION "0.0.4"
+#define PLUGIN_VERSION "0.1.0"
 #define URL_PREFIX "http://fps.withgod.jp/kansha/"
 
 new String:_err[STRING_MAX];
