@@ -96,7 +96,7 @@ public ShowPluginMsg(client)
 		decl String:steamcomid[STRING_MAX];
 		Steam_GetCSteamIDForClient(client, steamcomid, STRING_MAX);
 		PrintToChat(client, "[nj]kansha no plugin http://fps.withgod.jp/kansha/");
-		PrintToChat(client, "[nj]your stats http://fps.withgod.jp/kansha/user/%i", steamcomid);
+		PrintToChat(client, "[nj]your stats http://fps.withgod.jp/kansha/user/%s", steamcomid);
 		PrintToChat(client, "[nj]your stats show in steambrowser !kansha");
 	}
 }
