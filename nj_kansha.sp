@@ -338,6 +338,7 @@ public CountUpStart(client)
 		if (IsClientInGame(client)) {
 			jumpCounter[client] = 0;
 			UpdateSteamid(client);
+			SDKUnhook(client, SDKHook_OnTakeDamage, OnTakeDamage);
 			SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
 			ShowPluginMsg(client);
 		}
@@ -376,20 +377,34 @@ damagetype
 32      = hit ground
 2359360 = rocket launcher(normal, direct hit, liberty, rocket jumper)
 2097216 = equalizer(taunt suicide)
+
+262208  = grenade
+2490432 = sticky bomb(normal, scottish)
+393280  = sticky jumper
+
+
 */
 public Action:OnTakeDamage(client, &attacker, &inflictor, &Float:damage, &damagetype)
 {
 	if(IsClientInGame(client) && IsPlayerAlive(client))
 	{
+		new iButtons = GetClientButtons(client);
 		new TFClassType:theClass = TF2_GetPlayerClass(client);
-		if (theClass == TFClass_Soldier) // theClass == TFClass_DemoMan 
+		//PrintToServer("debug message [%i/%i/%i/%i/%i]", client, theClass , attacker, iButtons, damagetype);
+		if (theClass == TFClass_Soldier)
 		{
-			new iButtons = GetClientButtons(client);
-			//PrintToServer("debug message [%i/%i/%i/%i]", client , attacker, iButtons, damagetype);
 			if (iButtons & IN_DUCK && damagetype == 2359360 && attacker == client)
 			{
-				//PrintToServer("take damage [%i/%i/%i/%i/%i]", client, theClass, attacker, damagetype, iButtons);
-				//PrintToServer("OK");
+				jumpCounter[client]++;
+				decl String:tmpString[STRING_MAX];
+				Format(tmpString, sizeof(tmpString), "total jump[%i]", jumpCounter[client]);
+				PrintHintText(client, tmpString);
+			}
+		}
+		if (theClass == TFClass_DemoMan)
+		{
+			if ((damagetype == 2490432 || damagetype == 393280) && attacker == client)
+			{
 				jumpCounter[client]++;
 				decl String:tmpString[STRING_MAX];
 				Format(tmpString, sizeof(tmpString), "total jump[%i]", jumpCounter[client]);
