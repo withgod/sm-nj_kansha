@@ -15,7 +15,7 @@
 
 #define STRING_MAX 256
 #define SAVE_THRESHOLD 10
-#define PLUGIN_VERSION "0.1.0"
+#define PLUGIN_VERSION "0.1.1"
 #define URL_PREFIX "http://fps.withgod.jp/kansha/"
 
 new String:_err[STRING_MAX];
@@ -46,6 +46,9 @@ public OnPluginStart()
 
 	maxclients = GetMaxClients();
 
+
+	HookEvent("player_changeclass", OnChangeClass, EventHookMode_Pre);
+
 	db = SQL_DefConnect(_err, sizeof(_err));
 	if (db == INVALID_HANDLE)
 	{
@@ -56,6 +59,14 @@ public OnPluginStart()
 		SQL_FastQuery(db, "SET NAMES \"UTF8\""); //fuck hack mysql
 		CountUpAllStart();
 	}
+}
+
+public Action:OnChangeClass(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	new client = GetClientOfUserId(GetEventInt(event, "userid"));
+	PrintToChat(client, "[nj]detect change or start class. countup restart.");
+	CountUpEnd(client);
+	CountUpStart(client);
 }
 
 public OnPluginEnd()
@@ -84,6 +95,7 @@ public OnClientPutInServer(client)
 {
 	UpdateSteamid(client);
 	CountUpStart(client);
+	ShowPluginMsg(client);
 }
 
 public OnClientDisconnect(client)
@@ -340,7 +352,6 @@ public CountUpStart(client)
 			UpdateSteamid(client);
 			SDKUnhook(client, SDKHook_OnTakeDamage, OnTakeDamage);
 			SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
-			ShowPluginMsg(client);
 		}
 	}
 }
@@ -397,7 +408,7 @@ public Action:OnTakeDamage(client, &attacker, &inflictor, &Float:damage, &damage
 			{
 				jumpCounter[client]++;
 				decl String:tmpString[STRING_MAX];
-				Format(tmpString, sizeof(tmpString), "total jump[%i]", jumpCounter[client]);
+				Format(tmpString, sizeof(tmpString), "soldier jump[%i]", jumpCounter[client]);
 				PrintHintText(client, tmpString);
 			}
 		}
@@ -407,7 +418,7 @@ public Action:OnTakeDamage(client, &attacker, &inflictor, &Float:damage, &damage
 			{
 				jumpCounter[client]++;
 				decl String:tmpString[STRING_MAX];
-				Format(tmpString, sizeof(tmpString), "total jump[%i]", jumpCounter[client]);
+				Format(tmpString, sizeof(tmpString), "demoman jump[%i]", jumpCounter[client]);
 				PrintHintText(client, tmpString);
 			}
 		}
