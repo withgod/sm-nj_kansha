@@ -14,7 +14,7 @@
 #include <dbi>
 
 #define STRING_MAX 256
-#define SAVE_THRESHOLD 10
+#define SAVE_THRESHOLD 100
 #define PLUGIN_VERSION "0.1.1"
 #define URL_PREFIX "http://fps.withgod.jp/kansha/"
 
@@ -40,7 +40,7 @@ public OnPluginStart()
 {
 	g_njKanshaEnable = CreateConVar("nj_kansha", "1", "kansha plugin Enable/Disable (0 = disabled | 1 = enabled)", 0, true, 0.0, true, 1.0);
 	g_njKanshaTag    = CreateConVar("nj_kansha_tag", "default", "kansha plugin tag cvar");
-	g_njKanshaTag    = CreateConVar("nj_kansha_debug", "1", "kansha plugin debug cvar");
+	g_njKanshaDebug  = CreateConVar("nj_kansha_debug", "1", "kansha plugin debug cvar");
 
 	CreateConVar("nj_kansha_version", PLUGIN_VERSION, "Kansha no Jump Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 
@@ -65,7 +65,14 @@ public OnPluginStart()
 public Action:OnChangeClass(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
+	new TFClassType:theClass = TFClassType:GetEventInt(event, "class");
+	new TFClassType:oldClass = TF2_GetPlayerClass(client);
+	new TFTeam:team = TFTeam:GetClientTeam(client);
 	PrintToChat(client, "[nj]detect change or start class. countup restart.");
+	if (GetConVarBool(g_njKanshaDebug))
+	{
+		PrintToServer("[nj][kansha][debug] change class detect. current class[%i]old class[%i]team[%i]", theClass, oldClass, team);
+	}
 	CountUpEnd(client);
 	CountUpStart(client);
 }
@@ -113,6 +120,7 @@ public ShowPluginMsg(client)
 		PrintToChat(client, "[nj]kansha no plugin %s", URL_PREFIX);
 		PrintToChat(client, "[nj]your stats %suser/%s", URL_PREFIX, steamcomid);
 		PrintToChat(client, "[nj]your stats show in steambrowser !kansha");
+		PrintToChat(client, "[nj]record result threshold %i", SAVE_THRESHOLD);
 	}
 }
 
@@ -152,7 +160,7 @@ public GetSteamidId(client)
 				steamid_id = SQL_FetchInt(hSelectQuery, 0);
 			}
 			if (GetConVarBool(g_njKanshaDebug))
-				PrintToServer("[nj][kansha] UpdateSteamid steamid_id[%i]", steamid_id);
+				PrintToServer("[nj][kansha][debug] UpdateSteamid steamid_id[%i]", steamid_id);
 		}
 	}
 	if (hSelectQuery != INVALID_HANDLE)
@@ -393,8 +401,6 @@ damagetype
 262208  = grenade
 2490432 = sticky bomb(normal, scottish)
 393280  = sticky jumper
-
-
 */
 public Action:OnTakeDamage(client, &attacker, &inflictor, &Float:damage, &damagetype)
 {
@@ -403,7 +409,7 @@ public Action:OnTakeDamage(client, &attacker, &inflictor, &Float:damage, &damage
 		new iButtons = GetClientButtons(client);
 		new TFClassType:theClass = TF2_GetPlayerClass(client);
 		if (GetConVarBool(g_njKanshaDebug))
-			PrintToServer("[nj][kansha] OnTakeDamage [%i/%i/%i/%i/%i]", client, theClass , attacker, iButtons, damagetype);
+			PrintToServer("[nj][kansha][debug] OnTakeDamage [%i/%i/%i/%i/%i]", client, theClass , attacker, iButtons, damagetype);
 		if (theClass == TFClass_Soldier)
 		{
 			if (iButtons & IN_DUCK && damagetype == 2359360 && attacker == client)
