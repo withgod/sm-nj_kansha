@@ -21,6 +21,7 @@
 new String:_err[STRING_MAX];
 new Handle:g_njKanshaEnable;
 new Handle:g_njKanshaTag;
+new Handle:g_njKanshaDebug;
 new Handle:db;
 new jumpCounter[STRING_MAX];
 new maxclients;
@@ -39,13 +40,13 @@ public OnPluginStart()
 {
 	g_njKanshaEnable = CreateConVar("nj_kansha", "1", "kansha plugin Enable/Disable (0 = disabled | 1 = enabled)", 0, true, 0.0, true, 1.0);
 	g_njKanshaTag    = CreateConVar("nj_kansha_tag", "default", "kansha plugin tag cvar");
+	g_njKanshaTag    = CreateConVar("nj_kansha_debug", "1", "kansha plugin debug cvar");
 
 	CreateConVar("nj_kansha_version", PLUGIN_VERSION, "Kansha no Jump Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 
 	RegConsoleCmd("kansha", ShowStatusInBrowser);
 
 	maxclients = GetMaxClients();
-
 
 	HookEvent("player_changeclass", OnChangeClass, EventHookMode_Pre);
 
@@ -120,7 +121,6 @@ public Action:ShowStatusInBrowser(client, args)
 	decl String:steamcomid[STRING_MAX], String:url[STRING_MAX];
 	Steam_GetCSteamIDForClient(client, steamcomid, STRING_MAX);
 	Format(url, STRING_MAX, "%suser/%s", URL_PREFIX, steamcomid);
-	//PrintToServer("[nj]open in [%s]", url);
 	ShowMOTDPanel(client, "Kansha no Plugin Status", url, MOTDPANEL_TYPE_URL);
 }
 
@@ -151,7 +151,8 @@ public GetSteamidId(client)
 			{
 				steamid_id = SQL_FetchInt(hSelectQuery, 0);
 			}
-			//PrintToServer("[nj][kansha] UpdateSteamid steamid_id[%i]", steamid_id);
+			if (GetConVarBool(g_njKanshaDebug))
+				PrintToServer("[nj][kansha] UpdateSteamid steamid_id[%i]", steamid_id);
 		}
 	}
 	if (hSelectQuery != INVALID_HANDLE)
@@ -401,7 +402,8 @@ public Action:OnTakeDamage(client, &attacker, &inflictor, &Float:damage, &damage
 	{
 		new iButtons = GetClientButtons(client);
 		new TFClassType:theClass = TF2_GetPlayerClass(client);
-		//PrintToServer("debug message [%i/%i/%i/%i/%i]", client, theClass , attacker, iButtons, damagetype);
+		if (GetConVarBool(g_njKanshaDebug))
+			PrintToServer("[nj][kansha] OnTakeDamage [%i/%i/%i/%i/%i]", client, theClass , attacker, iButtons, damagetype);
 		if (theClass == TFClass_Soldier)
 		{
 			if (iButtons & IN_DUCK && damagetype == 2359360 && attacker == client)
@@ -426,18 +428,3 @@ public Action:OnTakeDamage(client, &attacker, &inflictor, &Float:damage, &damage
 	return Plugin_Continue;
 }
 
-/*
-debug function.
-public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon) {
-//PrintToServer("%i, %i", TFClass_DemoMan, TFClass_Soldier);
-if(buttons & IN_ATTACK)
-{
-PrintToChatAll("client[%i] is attacking status[%i]", client, buttons);
-}
-if(buttons & IN_DUCK)
-{
-PrintToChatAll("client[%i] is ducking status[%i]", client, buttons);
-}
-return Plugin_Continue;
-}
-*/
